@@ -11,7 +11,7 @@ from rich.progress import (
 )
 
 from ..custom import PROGRESS, USERAGENT, wait
-from ..tools import DownloaderError, FakeProgress, Retry, capture_error_request
+from ..tools import Retry, DownloaderError, capture_error_request, FakeProgress
 from ..translation import _
 
 if TYPE_CHECKING:
@@ -35,20 +35,18 @@ class API:
         "update_version_code": "170400",
         "pc_client_type": "1",
         "pc_libra_divert": "Windows",
-        "support_h265": "1",
-        "support_dash": "1",
         "version_code": "290100",
         "version_name": "29.1.0",
         "cookie_enabled": "true",
         "screen_width": "1536",
         "screen_height": "864",
-        "browser_language": "zh-CN",
+        "browser_language": "zh-SG",
         "browser_platform": "Win32",
         "browser_name": "Chrome",
-        "browser_version": "139.0.0.0",
+        "browser_version": "136.0.0.0",
         "browser_online": "true",
         "engine_name": "Blink",
-        "engine_version": "139.0.0.0",
+        "engine_version": "136.0.0.0",
         "os_name": "Windows",
         "os_version": "10",
         "cpu_core_num": "16",
@@ -502,7 +500,7 @@ class APITikTok(API):
         "browser_name": "Mozilla",
         "browser_online": "true",
         "browser_platform": "Win32",
-        "browser_version": "5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+        "browser_version": "5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
         "channel": "tiktok_web",
         "cookie_enabled": "true",
         "data_collection_enabled": "true",

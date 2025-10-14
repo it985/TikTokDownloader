@@ -1,4 +1,4 @@
-from .browser import Browser
+
 from .capture import capture_error_params
 from .capture import capture_error_request
 from .choose import choose
@@ -15,14 +15,11 @@ from .format import (
     cookie_str_to_str,
     format_size,
 )
-from .list_pop import safe_pop
 from .retry import Retry
 from .session import (
     request_params,
     create_client,
 )
-from .temporary import random_string
-from .temporary import timestamp
 from .timer import run_time
 from .truncate import beautify_string
 from .truncate import trim_string

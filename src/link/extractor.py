@@ -11,8 +11,6 @@ __all__ = ["Extractor", "ExtractorTikTok"]
 
 
 class Extractor:
-    WEB_RID = compile(r"\\\"webRid\\\":\\\"(\d+?)\\\"")
-
     account_link = compile(
         r"\S*?https://www\.douyin\.com/user/([A-Za-z0-9_-]+)(?:\S*?\bmodal_id=(\d{19}))?"
     )  # 账号主页链接
@@ -80,23 +78,10 @@ class Extractor:
             case "mix":
                 return self.mix(text)
             case "live":
-                return await self.live(text)
+                return self.live(text)
             case "":
                 return text
         raise ValueError
-
-    async def get_html_data(
-        self,
-        url: str,
-        pattern,
-        index=1,
-    ) -> str:
-        html = await self.requester.request_url(
-            url,
-            "text",
-        )
-        data = pattern.search(html or "")
-        return data.group(index) if data else ""
 
     def detail(
         self,
@@ -115,24 +100,23 @@ class Extractor:
     def mix(
         self,
         urls: str,
-    ) -> tuple[bool, list[str]]:
+    ) -> [bool, list[str]]:
         if detail := self.__extract_detail(urls):
             return False, detail
         link = self.extract_info(self.mix_link, urls, 1)
         share = self.extract_info(self.mix_share, urls, 1)
         return (True, m) if (m := link + share) else (None, [])
 
-    async def live(
+    def live(
         self,
         urls: str,
-    ) -> list[str]:
+    ) -> [bool, list]:
         live_link = self.extract_info(self.live_link, urls, 1)
         live_link_self = self.extract_info(self.live_link_self, urls, 1)
+        if live := live_link + live_link_self:
+            return True, live
         live_link_share = self.extract_info(self.live_link_share, urls, 0)
-        live_link_share = [
-            await self.get_html_data(i, self.WEB_RID) for i in live_link_share
-        ]
-        return live_link + live_link_self + live_link_share
+        return False, self.extract_sec_user_id(live_link_share)
 
     def __extract_detail(
         self,
@@ -171,7 +155,7 @@ class ExtractorTikTok(Extractor):
     account_link = compile(r"\S*?(https://www\.tiktok\.com/@[^\s/]+)\S*?")
 
     detail_link = compile(
-        r"\S*?https://www\.tiktok\.com/@[^\s/]+/(?!playlist)(?:(?:video|photo)/(\d{19}))?\S*?"
+        r"\S*?https://www\.tiktok\.com/@[^\s/]+(?:/(?:video|photo)/(\d{19}))?\S*?"
     )  # 作品链接
 
     mix_link = compile(
@@ -193,7 +177,7 @@ class ExtractorTikTok(Extractor):
         proxy: str = None,
     ) -> Union[
         list[str],
-        tuple[bool, list[str], list[str | None]],
+        tuple[bool, list[str]],
         str,
     ]:
         text = await self.requester.run(
@@ -224,7 +208,7 @@ class ExtractorTikTok(Extractor):
         urls: str,
     ) -> list[str]:
         link = self.extract_info(self.account_link, urls, 1)
-        link = [await self.get_html_data(i, self.SEC_UID) for i in link]
+        link = [await self.__get_html_data(i, self.SEC_UID) for i in link]
         return [i for i in link if i]
 
     def __extract_detail(
@@ -235,12 +219,24 @@ class ExtractorTikTok(Extractor):
         link = self.extract_info(self.detail_link, urls, index)
         return link
 
+    async def __get_html_data(
+        self,
+        url: str,
+        pattern,
+        index=1,
+    ) -> str:
+        html = await self.requester.request_url(
+            url,
+            "text",
+        )
+        return m.group(index) if (m := pattern.search(html or "")) else ""
+
     async def mix(
         self,
         urls: str,
-    ) -> tuple[bool, list[str], list[str | None]]:
+    ) -> [bool, list[str]]:
         detail = self.__extract_detail(urls, index=0)
-        detail = [await self.get_html_data(i, self.MIX_ID) for i in detail]
+        detail = [await self.__get_html_data(i, self.MIX_ID) for i in detail]
         detail = [i for i in detail if i]
         mix = self.extract_info(self.mix_link, urls, 2)
         title = [unquote(i) for i in self.extract_info(self.mix_link, urls, 1)]
@@ -249,7 +245,7 @@ class ExtractorTikTok(Extractor):
     async def live(
         self,
         urls: str,
-    ) -> list[str]:
+    ) -> [bool, list[str]]:
         link = self.extract_info(self.live_link, urls, 0)
-        link = [await self.get_html_data(i, self.ROOD_ID) for i in link]
-        return [i for i in link if i]
+        link = [await self.__get_html_data(i, self.ROOD_ID) for i in link]
+        return True, [i for i in link if i]

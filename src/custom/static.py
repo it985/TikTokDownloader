@@ -1,19 +1,25 @@
 # 同时下载作品文件的最大任务数，对直播无效
 MAX_WORKERS = 4
 
+# 作品描述最大长度限制，仅对作品文件名称生效，不影响数据储存，设置时需要考虑系统文件名称最大长度限制
+DESCRIPTION_LENGTH = 64
+
+# 文件名称最大长度限制
+MAX_FILENAME_LENGTH = 128
+
 # 非法字符替换规则，key 为替换前的文本，value 为替换后的文本
 TEXT_REPLACEMENT = {
     " ": " ",
 }
 
-# 服务器模式主机，对 Web API 接口模式、Web UI 交互模式 生效，设置为 "127.0.0.1" 代表仅本地可用
-SERVER_HOST = "0.0.0.0"
+# 服务器模式主机，对 Web API 接口模式、Web UI 交互模式 生效，设置为 "0.0.0.0" 可以启用局域网访问（外部可用）
+SERVER_HOST = "127.0.0.1"
 
 # 服务器模式端口，对 Web API 接口模式、Web UI 交互模式 生效
 SERVER_PORT = 5555
 
 # Cookie 更新间隔，单位：秒
-COOKIE_UPDATE_INTERVAL = 15 * 60
+COOKIE_UPDATE_INTERVAL = 20 * 60
 
 # 彩色交互提示颜色设置，支持标准颜色名称、Hex、RGB 格式
 MASTER = "b #fff200"

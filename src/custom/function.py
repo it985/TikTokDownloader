@@ -29,28 +29,49 @@ def failure_handling() -> bool:
     # return False
 
 
+# 全局过滤统计计数器
+filter_stats = {"total": 0, "filtered": 0, "image": 0, "live": 0}
+
 def condition_filter(data: dict) -> bool:
     """
     自定义作品筛选规则，例如：筛选作品点赞数、作品类型、视频分辨率等
     需要排除的作品返回 False，否则返回 True
     """
+    filter_stats["total"] += 1
+    
+    # 允许下载所有类型作品（包括图集、实况、视频）
+    # work_type = data.get("type")
+    # if work_type in ["图集", "实况"]:
+    #     filter_stats["filtered"] += 1
+    #     if work_type == "图集":
+    #         filter_stats["image"] += 1
+    #     elif work_type == "实况":
+    #         filter_stats["live"] += 1
+    #     return False
+        
     # if data["ratio"] in ("720p", "540p"):
     #     return False  # 过滤低分辨率的视频作品
     return True
 
+def get_filter_stats():
+    """获取过滤统计信息"""
+    return filter_stats.copy()
+
+def reset_filter_stats():
+    """重置过滤统计信息"""
+    filter_stats.update({"total": 0, "filtered": 0, "image": 0, "live": 0})
+
 
 async def suspend(count: int, console: "ColorfulConsole") -> None:
     """
-    如需采集大量数据，请启用该函数，可以在处理指定数量的数据后，暂停一段时间，然后继续运行
-    batches: 每次处理的数据数量上限，比如：每次处理 10 个数据，就会暂停程序
-    rest_time: 程序暂停的时间，单位：秒；比如：每处理 10 个数据，就暂停 5 分钟
-    仅对 批量下载账号作品模式 和 批量下载合集作品模式 生效
-    说明: 此处的一个数据代表一个账号或者一个合集，并非代表一个数据包
+    批量采集暂停机制：处理指定数量后暂停一段时间
+    batches: 每处理多少个账号/合集后暂停
+    rest_time: 暂停时间（秒）
     """
-    # 启用该函数
-    batches = 10  # 根据实际需求修改
+    # 启用暂停机制
+    batches = 5  # 每处理5个账号后暂停
     if not count % batches:
-        rest_time = 60 * 5  # 根据实际需求修改
+        rest_time = 60 * 2  # 暂停2分钟
         console.print(
             _(
                 "程序连续处理了 {batches} 个数据，为了避免请求频率过高导致账号或 IP 被风控，"
@@ -58,7 +79,7 @@ async def suspend(count: int, console: "ColorfulConsole") -> None:
             ).format(batches=batches, rest_time=rest_time),
         )
         await sleep(rest_time)
-    # 禁用该函数
+    # 禁用暂停机制
     # pass
 
 

@@ -20,11 +20,7 @@ pydantic==2.11.7
     # via douk-downloader (pyproject.toml)
 pyperclip==1.9.0
     # via douk-downloader (pyproject.toml)
-qrcode==8.2
-    # via douk-downloader (pyproject.toml)
 rich==14.1.0
-    # via douk-downloader (pyproject.toml)
-rookiepy==0.5.6
     # via douk-downloader (pyproject.toml)
 uvicorn==0.35.0
     # via douk-downloader (pyproject.toml)

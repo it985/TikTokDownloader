@@ -15,29 +15,23 @@ from src.custom import (
     PROJECT_ROOT,
     RELEASES,
     REPOSITORY,
-    SERVER_HOST,
-    SERVER_PORT,
     TEXT_REPLACEMENT,
     VERSION_BETA,
     VERSION_MAJOR,
     VERSION_MINOR,
 )
 from src.manager import Database, DownloadRecorder
-from src.module import Cookie, MigrateFolder
+from src.module import Cookie
 from src.record import BaseLogger, LoggerManager
 from src.tools import (
-    Browser,
     ColorfulConsole,
     DownloaderError,
     RenameCompatible,
     choose,
     remove_empty_directories,
-    safe_pop,
 )
 from src.translation import _, switch_language
 
-from .main_monitor import ClipboardMonitor
-from .main_server import APIServer
 from .main_terminal import TikTok
 
 # from typing import Type
@@ -110,16 +104,8 @@ class TikTokDownloader:
         }
         self.__function_menu = (
             (_("从剪贴板读取 Cookie (抖音)"), self.write_cookie),
-            (_("从浏览器读取 Cookie (抖音)"), self.browser_cookie),
-            # (_("扫码登录获取 Cookie (抖音)"), self.auto_cookie),
             (_("从剪贴板读取 Cookie (TikTok)"), self.write_cookie_tiktok),
-            (_("从浏览器读取 Cookie (TikTok)"), self.browser_cookie_tiktok),
             (_("终端交互模式"), self.complete),
-            (_("后台监听模式"), self.monitor),
-            (_("Web API 模式"), self.server),
-            (_("Web UI 模式"), self.disable_function),
-            # (_("Web API 模式"), self.__api_object),
-            # (_("Web UI 模式"), self.__web_ui_object),
             (
                 _("{}作品下载记录").format(options[self.config["Record"]]),
                 self.__modify_record,
@@ -133,32 +119,7 @@ class TikTokDownloader:
             (_("切换语言"), self._switch_language),
         )
 
-    async def disable_function(
-        self,
-        *args,
-        **kwargs,
-    ):
-        self.console.warning(
-            "该功能正在重构，未来开发完成重新开放！",
-        )
 
-    async def server(self):
-        try:
-            self.console.print(
-                _(
-                    "访问 http://127.0.0.1:5555/docs 或者 http://127.0.0.1:5555/redoc 可以查阅 API 模式说明文档！"
-                ),
-                highlight=True,
-            )
-            await APIServer(
-                self.parameter,
-                self.database,
-            ).run_server(
-                SERVER_HOST,
-                SERVER_PORT,
-            )
-        except KeyboardInterrupt:
-            self.running = False
 
     async def __modify_record(self):
         await self.change_config("Record")
@@ -280,10 +241,7 @@ class TikTokDownloader:
                     _("DouK-Downloader 功能选项"),
                     [i for i, __ in self.__function_menu],
                     self.console,
-                    separate=(
-                        4,
-                        8,
-                    ),
+                    separate=(3, 6),
                 )
             await self.compatible(mode)
             mode = None
@@ -300,18 +258,7 @@ class TikTokDownloader:
         except KeyboardInterrupt:
             self.running = False
 
-    async def monitor(self):
-        await self.monitor_clipboard()
 
-    async def monitor_clipboard(self):
-        example = ClipboardMonitor(
-            self.parameter,
-            self.database,
-        )
-        try:
-            await example.run(self.run_command)
-        except (KeyboardInterrupt, CancelledError):
-            await example.stop_listener()
 
     async def change_config(
         self,
@@ -395,7 +342,7 @@ class TikTokDownloader:
             **self.settings.read(),
             recorder=self.recorder,
         )
-        MigrateFolder(self.parameter).compatible()
+        self.parameter.compatible()
         self.parameter.set_headers_cookie()
         self.restart_cycle_task(
             restart,
@@ -412,7 +359,7 @@ class TikTokDownloader:
             False,
         )
         if await self.disclaimer():
-            await self.main_menu(safe_pop(self.run_command))
+            await self.main_menu(self.run_command.pop() if self.run_command else None)
 
     def periodic_update_params(self):
         async def inner():
@@ -444,19 +391,4 @@ class TikTokDownloader:
             remove_empty_directories(self.parameter.root)
         self.parameter.logger.info(_("正在关闭程序"))
 
-    async def browser_cookie(
-        self,
-    ):
-        if Browser(self.parameter, self.cookie).run(
-            select=safe_pop(self.run_command),
-        ):
-            await self.check_settings()
 
-    async def browser_cookie_tiktok(
-        self,
-    ):
-        if Browser(self.parameter, self.cookie).run(
-            True,
-            select=safe_pop(self.run_command),
-        ):
-            await self.check_settings()

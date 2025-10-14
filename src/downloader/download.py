@@ -1,42 +1,46 @@
-from asyncio import Semaphore, gather
+from asyncio import Semaphore
+from asyncio import gather
 from datetime import datetime
 from pathlib import Path
 from shutil import move
 from time import time
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Callable, Union
-
+from typing import TYPE_CHECKING
+from typing import Union
+from typing import Callable
 from aiofiles import open
-from httpx import HTTPStatusError, RequestError, StreamError
+from httpx import HTTPStatusError
+from httpx import RequestError
+from httpx import StreamError
 from rich.progress import (
+    SpinnerColumn,
     BarColumn,
     DownloadColumn,
     Progress,
-    SpinnerColumn,
     TextColumn,
     TimeElapsedColumn,
     TimeRemainingColumn,
     TransferSpeedColumn,
 )
 
+from ..custom import DESCRIPTION_LENGTH
+from ..custom import MAX_FILENAME_LENGTH
+from ..custom import MAX_WORKERS
 from ..custom import (
-    MAX_WORKERS,
     PROGRESS,
 )
-from ..tools import (
-    CacheError,
-    DownloaderError,
-    FakeProgress,
-    Retry,
-    beautify_string,
-    format_size,
-)
+from ..custom.function import reset_filter_stats
+from ..tools import CacheError
+from ..tools import Retry
+from ..tools import DownloaderError
+from ..tools import beautify_string
+from ..tools import format_size
+from ..tools import FakeProgress
 from ..translation import _
 
 if TYPE_CHECKING:
-    from httpx import AsyncClient
-
     from ..config import Parameter
+    from httpx import AsyncClient
 
 __all__ = ["Downloader"]
 
@@ -69,8 +73,6 @@ class Downloader:
         self.root = params.root
         self.folder_name = params.folder_name
         self.name_format = params.name_format
-        self.desc_length = params.desc_length
-        self.name_length = params.name_length
         self.split = params.split
         self.folder_mode = params.folder_mode
         self.music = params.music
@@ -289,6 +291,9 @@ class Downloader:
         )
 
     async def batch_processing(self, data: list[dict], root: Path, **kwargs):
+        # 重置过滤统计
+        reset_filter_stats()
+        
         count = SimpleNamespace(
             downloaded_image=set(),
             skipped_image=set(),
@@ -299,10 +304,7 @@ class Downloader:
         )
         tasks = []
         for item in data:
-            item["desc"] = beautify_string(
-                item["desc"],
-                self.desc_length,
-            )
+            item["desc"] = beautify_string(item["desc"], DESCRIPTION_LENGTH)
             name = self.generate_detail_name(item)
             temp_root, actual_root = self.deal_folder_path(
                 root,
@@ -806,7 +808,7 @@ class Downloader:
                 self.split.join(data[i] for i in self.name_format),
                 data["id"],
             ),
-            length=self.name_length,
+            length=MAX_FILENAME_LENGTH,
         )
 
     def generate_music_name(self, data: dict) -> str:
@@ -823,7 +825,7 @@ class Downloader:
                 ),
                 default=str(time())[:10],
             ),
-            length=self.name_length,
+            length=MAX_FILENAME_LENGTH,
         )
 
     @staticmethod
@@ -850,6 +852,10 @@ class Downloader:
         self.log.info(_("{file_name} 文件已删除").format(file_name=path.name))
 
     def statistics_count(self, count: SimpleNamespace):
+        # 导入过滤统计
+        from ..custom.function import get_filter_stats
+        filter_stats = get_filter_stats()
+        
         self.log.info(
             _("下载视频作品 {downloaded_video_count} 个").format(
                 downloaded_video_count=len(count.downloaded_video)
@@ -880,6 +886,18 @@ class Downloader:
                 skipped_count=len(count.skipped_live)
             )
         )
+        
+        # 显示过滤统计
+        if filter_stats["filtered"] > 0:
+            self.log.info(
+                _("过滤图集作品 {count} 个").format(count=filter_stats["image"])
+            )
+            self.log.info(
+                _("过滤实况作品 {count} 个").format(count=filter_stats["live"])
+            )
+            self.log.info(
+                _("总计过滤作品 {count} 个").format(count=filter_stats["filtered"])
+            )
 
     def _record_response(
         self,

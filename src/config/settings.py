@@ -5,7 +5,6 @@ from shutil import move
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
-from ..custom import USERAGENT
 from ..translation import _
 
 if TYPE_CHECKING:
@@ -19,97 +18,109 @@ __all__ = ["Settings"]
 class Settings:
     encode = "UTF-8-SIG" if system() == "Windows" else "UTF-8"
     default = {
-        "accounts_urls": [
+        # ===== 批量下载账号配置 =====
+        "accounts_urls": [  # 抖音账号批量下载配置
             {
-                "mark": "",
-                "url": "",
-                "tab": "",
-                "earliest": "",
-                "latest": "",
-                "enable": True,
+                "mark": "",  # 自定义账号标识，用于文件夹命名
+                "url": "",   # 抖音账号主页链接
+                "tab": "",   # 下载类型: post(发布) favorite(喜欢) collection(收藏)
+                "earliest": "",  # 最早日期筛选 格式: 2024-01-01
+                "latest": "",    # 最新日期筛选 格式: 2024-12-31
+                "enable": True,  # 是否启用此配置
             },
         ],
-        "accounts_urls_tiktok": [
+        "accounts_urls_tiktok": [  # TikTok账号批量下载配置
             {
-                "mark": "",
-                "url": "",
-                "tab": "",
-                "earliest": "",
-                "latest": "",
-                "enable": True,
+                "mark": "",  # 自定义账号标识
+                "url": "",   # TikTok账号主页链接
+                "tab": "",   # 下载类型: post(发布) favorite(喜欢)
+                "earliest": "",  # 最早日期筛选
+                "latest": "",    # 最新日期筛选
+                "enable": True,  # 是否启用此配置
             },
         ],
-        "mix_urls": [
+        # ===== 批量下载合集配置 =====
+        "mix_urls": [  # 抖音合集批量下载配置
             {
-                "mark": "",
-                "url": "",
-                "enable": True,
+                "mark": "",  # 自定义合集标识
+                "url": "",   # 抖音合集链接
+                "enable": True,  # 是否启用此配置
             },
         ],
-        "mix_urls_tiktok": [
+        "mix_urls_tiktok": [  # TikTok合集批量下载配置
             {
-                "mark": "",
-                "url": "",
-                "enable": True,
+                "mark": "",  # 自定义合集标识
+                "url": "",   # TikTok合集链接
+                "enable": True,  # 是否启用此配置
             },
         ],
-        "owner_url": {
-            "mark": "",
-            "url": "",
-            "uid": "",
-            "sec_uid": "",
-            "nickname": "",
+        # ===== 收藏作品配置 =====
+        "owner_url": {  # 当前登录账号信息(用于下载收藏作品)
+            "mark": "",     # 账号标识
+            "url": "",      # 账号主页链接
+            "uid": "",      # 用户ID
+            "sec_uid": "",  # 安全用户ID
+            "nickname": "", # 昵称
         },
-        "owner_url_tiktok": None,
-        "root": "",
-        "folder_name": "Download",
-        "name_format": "create_time type nickname desc",
-        "desc_length": 64,
-        "name_length": 128,
-        "date_format": "%Y-%m-%d %H:%M:%S",
-        "split": "-",
-        "folder_mode": False,
-        "music": False,
-        "truncate": 50,
-        "storage_format": "",
-        "cookie": "",
-        "cookie_tiktok": "",
-        "dynamic_cover": False,
-        "static_cover": False,
-        "proxy": "",
-        "proxy_tiktok": "",
-        "twc_tiktok": "",
-        "download": True,
-        "max_size": 0,
-        "chunk": 1024 * 1024 * 2,  # 每次从服务器接收的数据块大小
-        "timeout": 10,
-        "max_retry": 5,  # 重试最大次数
-        "max_pages": 0,
-        "run_command": "",
-        "ffmpeg": "",
-        "live_qualities": "",
-        "douyin_platform": True,
-        "tiktok_platform": True,
+        "owner_url_tiktok": None,  # TikTok收藏配置(暂未支持)
+        
+        # ===== 文件存储配置 =====
+        "root": "",  # 下载根目录，空则使用程序目录
+        "folder_name": "Download",  # 下载文件夹名称
+        "name_format": "create_time type nickname desc",  # 文件命名格式
+        "date_format": "%Y-%m-%d %H:%M:%S",  # 日期格式
+        "split": "-",  # 文件名分隔符
+        "folder_mode": False,  # 是否按账号/合集创建子文件夹
+        "music": False,  # 是否下载音乐文件
+        "truncate": 50,  # 文件名长度限制(字符数)
+        "storage_format": "",  # 数据存储格式: csv/xlsx/sqlite
+        
+        # ===== 登录凭证配置 =====
+        "cookie": "",  # 抖音Cookie(字符串或字典格式)
+        "cookie_tiktok": "",  # TikTok Cookie
+        
+        # ===== 下载内容配置 =====
+        "dynamic_cover": False,  # 是否下载动态封面
+        "static_cover": False,   # 是否下载静态封面
+        
+        # ===== 网络配置 =====
+        "proxy": "",  # 抖音代理设置 格式: http://127.0.0.1:7890
+        "proxy_tiktok": "",  # TikTok代理设置
+        "twc_tiktok": "",  # TikTok网络配置
+        
+        # ===== 下载控制配置 =====
+        "download": True,  # 是否实际下载文件(False仅获取数据)
+        "max_size": 0,  # 文件大小上限(字节) 0表示无限制
+        "chunk": 1024 * 1024 * 2,  # 下载块大小(2MB)
+        "timeout": 10,  # 网络请求超时时间(秒)
+        "max_retry": 5,  # 请求失败最大重试次数
+        "max_pages": 0,  # 最大请求页数 0表示无限制
+        
+        # ===== 程序运行配置 =====
+        "run_command": "",  # 启动命令参数
+        "ffmpeg": "",  # FFmpeg路径(用于直播下载)
+        "live_qualities": "",  # 直播画质选择
+        "douyin_platform": True,  # 是否启用抖音平台功能
+        "tiktok_platform": True,  # 是否启用TikTok平台功能
         "browser_info": {
-            "User-Agent": USERAGENT,
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
             "pc_libra_divert": "Windows",
-            "browser_language": "zh-CN",
             "browser_platform": "Win32",
             "browser_name": "Chrome",
-            "browser_version": "139.0.0.0",
+            "browser_version": "136.0.0.0",
             "engine_name": "Blink",
-            "engine_version": "139.0.0.0",
+            "engine_version": "136.0.0.0",
             "os_name": "Windows",
             "os_version": "10",
             "webid": "",
         },
         "browser_info_tiktok": {
-            "User-Agent": USERAGENT,
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
             "app_language": "zh-Hans",
-            "browser_language": "zh-CN",
+            "browser_language": "zh-SG",
             "browser_name": "Mozilla",
             "browser_platform": "Win32",
-            "browser_version": "5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+            "browser_version": "5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
             "language": "zh-Hans",
             "os": "windows",
             "priority_region": "CN",
