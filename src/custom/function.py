@@ -69,9 +69,9 @@ async def suspend(count: int, console: "ColorfulConsole") -> None:
     rest_time: 暂停时间（秒）
     """
     # 启用暂停机制
-    batches = 5  # 每处理5个账号后暂停
+    batches = 3  # 每处理5个账号后暂停
     if not count % batches:
-        rest_time = 60 * 2  # 暂停2分钟
+        rest_time = 60 * 5  # 暂停2分钟
         console.print(
             _(
                 "程序连续处理了 {batches} 个数据，为了避免请求频率过高导致账号或 IP 被风控，"
